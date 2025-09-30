@@ -58,11 +58,11 @@ global.MutationObserver = class MutationObserver {
   constructor(callback) {
     this.callback = callback
   }
-  
+
   observe() {
     // Mock implementation
   }
-  
+
   disconnect() {
     // Mock implementation
   }
@@ -155,10 +155,10 @@ global.createMockConfig = (overrides = {}) => {
 // Clean up after each test
 afterEach(() => {
   jest.clearAllMocks()
-  
+
   // Clear any DOM modifications
   document.body.innerHTML = ''
-  
+
   // Reset chrome API mocks
   if (chrome.runtime.lastError) {
     chrome.runtime.lastError = null

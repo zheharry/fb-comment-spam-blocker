@@ -41,7 +41,7 @@ describe('SpamDetector', () => {
   })
 
   describe('analyzeComment', () => {
-    test('should detect investment scam comment', async () => {
+    test('should detect investment scam comment', async() => {
       const comment = {
         text: '自己看不懂老是虧，跟著 波段小仙女晴兒 無腦上車，還真轉了點👍👍',
         author: { id: 'user123', username: 'testuser' },
@@ -62,14 +62,14 @@ describe('SpamDetector', () => {
       )
     })
 
-    test('should detect crypto scam comment', async () => {
+    test('should detect crypto scam comment', async() => {
       // Use aggressive mode for this test to lower threshold
       const aggressiveConfig = {
         ...mockConfig,
         settings: { aggressiveMode: true }
       }
       const aggressiveDetector = new SpamDetector(aggressiveConfig)
-      
+
       const comment = {
         text: '比特幣 以太幣 內幕消息！量化交易 DeFi挖礦 幣圈大佬推薦 合約交易',
         author: { id: 'user456', username: 'cryptoscammer' },
@@ -90,7 +90,7 @@ describe('SpamDetector', () => {
       )
     })
 
-    test('should detect social engineering with tagged users', async () => {
+    test('should detect social engineering with tagged users', async() => {
       const comment = {
         text: '大家一起來看 推薦給朋友',
         author: { id: 'user789', username: 'socialengineer' },
@@ -114,7 +114,7 @@ describe('SpamDetector', () => {
       )
     })
 
-    test('should not flag normal comment as spam', async () => {
+    test('should not flag normal comment as spam', async() => {
       const comment = {
         text: '這篇文章寫得很好，謝謝分享！',
         author: { id: 'normaluser', username: 'normaluser' },
@@ -128,7 +128,7 @@ describe('SpamDetector', () => {
       expect(result.confidence).toBeLessThan(0.5)
     })
 
-    test('should respect whitelist', async () => {
+    test('should respect whitelist', async() => {
       const comment = {
         text: '股海策略師 真的很棒', // Would normally be spam
         author: { id: 'trusted_user', username: 'trusted_user' },
@@ -142,7 +142,7 @@ describe('SpamDetector', () => {
       expect(result.reason).toBe('whitelisted')
     })
 
-    test('should detect blacklisted user', async () => {
+    test('should detect blacklisted user', async() => {
       const comment = {
         text: '正常的留言內容',
         author: { id: 'spammer123', username: 'spammer123' },
@@ -157,7 +157,7 @@ describe('SpamDetector', () => {
       expect(result.confidence).toBe(1.0)
     })
 
-    test('should detect blacklisted keywords', async () => {
+    test('should detect blacklisted keywords', async() => {
       const comment = {
         text: '我推薦 股海策略師 給大家',
         author: { id: 'regularuser', username: 'regularuser' },
@@ -172,11 +172,11 @@ describe('SpamDetector', () => {
       expect(result.confidence).toBe(0.9)
     })
 
-    test('should handle aggressive mode', async () => {
+    test('should handle aggressive mode', async() => {
       // Set aggressive mode
-      spamDetector.updateConfig({ 
-        ...mockConfig, 
-        settings: { aggressiveMode: true } 
+      spamDetector.updateConfig({
+        ...mockConfig,
+        settings: { aggressiveMode: true }
       })
 
       const comment = {
@@ -227,17 +227,17 @@ describe('SpamDetector', () => {
   describe('combineResults', () => {
     test('should combine multiple detector results correctly', () => {
       const mockResults = [
-        { 
-          isSpam: true, 
-          confidence: 0.8, 
-          patterns: ['investment_keyword'], 
-          type: 'investment' 
+        {
+          isSpam: true,
+          confidence: 0.9,
+          patterns: ['investment_keyword'],
+          type: 'investment'
         },
-        { 
-          isSpam: true, 
-          confidence: 0.6, 
-          patterns: ['tagged_users'], 
-          type: 'socialEngineering' 
+        {
+          isSpam: true,
+          confidence: 0.8,
+          patterns: ['tagged_users'],
+          type: 'socialEngineering'
         }
       ]
 

@@ -113,9 +113,9 @@ export class StorageManager {
     const listener = (changes, namespace) => {
       callback(changes, namespace)
     }
-    
+
     chrome.storage.onChanged.addListener(listener)
-    
+
     // Return unsubscribe function
     return () => {
       chrome.storage.onChanged.removeListener(listener)

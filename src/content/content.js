@@ -17,29 +17,28 @@ class ContentScript {
     this.processedComments = new Set()
     this.mutationObserver = null
     this.isInitialized = false
-    
+
     this.initialize()
   }
 
   async initialize() {
     try {
       this.logger.info('Initializing Facebook Comment Spam Blocker...')
-      
+
       // Get configuration from background script
       await this.loadConfiguration()
-      
+
       // Initialize spam detector
       this.spamDetector = new SpamDetector(this.config)
-      
+
       // Start monitoring Facebook comments
       this.startCommentMonitoring()
-      
+
       // Set up message listener for configuration updates
       this.setupMessageListener()
-      
+
       this.isInitialized = true
       this.logger.info('Content script initialized successfully')
-      
     } catch (error) {
       this.logger.error('Failed to initialize content script:', error)
     }
@@ -74,10 +73,10 @@ class ContentScript {
   startCommentMonitoring() {
     // Initial scan of existing comments
     this.scanExistingComments()
-    
+
     // Set up mutation observer for new comments
     this.setupMutationObserver()
-    
+
     // Periodic rescan to catch any missed comments
     setInterval(() => {
       this.scanExistingComments()
@@ -90,11 +89,10 @@ class ContentScript {
     try {
       const comments = this.facebookParser.findComments()
       this.logger.debug(`Found ${comments.length} comments to analyze`)
-      
+
       comments.forEach(commentElement => {
         this.processComment(commentElement)
       })
-      
     } catch (error) {
       this.logger.error('Error scanning existing comments:', error)
     }
@@ -147,7 +145,7 @@ class ContentScript {
 
       // Mark as processed
       this.processedComments.add(commentId)
-      
+
       this.logger.debug('Processing comment:', {
         id: commentId,
         author: commentData.author?.username,
@@ -157,12 +155,11 @@ class ContentScript {
 
       // Analyze comment for spam
       const detectionResult = await this.spamDetector.analyzeComment(commentData)
-      
+
       // Handle detection result
       if (detectionResult.isSpam) {
         await this.handleSpamComment(commentElement, commentData, detectionResult)
       }
-      
     } catch (error) {
       this.logger.error('Error processing comment:', error)
     }
@@ -170,7 +167,7 @@ class ContentScript {
 
   async handleSpamComment(commentElement, commentData, detectionResult) {
     const commentId = this.facebookParser.getCommentId(commentElement)
-    
+
     this.logger.info('Spam detected:', {
       id: commentId,
       confidence: detectionResult.confidence,
@@ -180,21 +177,21 @@ class ContentScript {
 
     // Hide the comment
     this.hideComment(commentElement, detectionResult)
-    
+
     // Track blocked comment
     this.blockedComments.add(commentId)
-    
+
     // Add to blacklist if confidence is high
     if (detectionResult.confidence > 0.9 && commentData.author) {
       await this.addToBlacklist(commentData.author)
     }
-    
+
     // Update statistics
     chrome.runtime.sendMessage({
       type: 'UPDATE_STATISTICS',
       data: { blockedComments: 1 }
     })
-    
+
     // Show notification if enabled
     if (this.config.settings?.showNotifications) {
       this.showSpamNotification(detectionResult)
@@ -204,7 +201,7 @@ class ContentScript {
   hideComment(commentElement, detectionResult) {
     // Add spam indicator class
     commentElement.classList.add('fb-spam-blocker-hidden')
-    
+
     // Create replacement element
     const replacementDiv = document.createElement('div')
     replacementDiv.className = 'fb-spam-blocker-replacement'
@@ -216,22 +213,22 @@ class ContentScript {
         <button class="report-false-positive-btn" type="button">Not spam</button>
       </div>
     `
-    
+
     // Set up event listeners
     const showBtn = replacementDiv.querySelector('.show-comment-btn')
     const reportBtn = replacementDiv.querySelector('.report-false-positive-btn')
-    
+
     showBtn.addEventListener('click', () => {
       commentElement.style.display = ''
       replacementDiv.remove()
     })
-    
+
     reportBtn.addEventListener('click', () => {
       this.reportFalsePositive(detectionResult)
       commentElement.style.display = ''
       replacementDiv.remove()
     })
-    
+
     // Hide original comment and insert replacement
     commentElement.style.display = 'none'
     commentElement.parentNode.insertBefore(replacementDiv, commentElement.nextSibling)
@@ -239,7 +236,7 @@ class ContentScript {
 
   async addToBlacklist(author) {
     if (!author.id && !author.username) return
-    
+
     try {
       await chrome.runtime.sendMessage({
         type: 'ADD_TO_BLACKLIST',
@@ -248,7 +245,7 @@ class ContentScript {
           userId: author.id || author.username
         }
       })
-      
+
       this.logger.info(`Added user ${author.username || author.id} to blacklist`)
     } catch (error) {
       this.logger.error('Failed to add user to blacklist:', error)
@@ -266,7 +263,7 @@ class ContentScript {
         <button class="notification-close" type="button">×</button>
       </div>
     `
-    
+
     // Position and style
     notification.style.cssText = `
       position: fixed;
@@ -282,20 +279,20 @@ class ContentScript {
       font-size: 14px;
       max-width: 300px;
     `
-    
+
     // Add close button functionality
     const closeBtn = notification.querySelector('.notification-close')
     closeBtn.addEventListener('click', () => {
       notification.remove()
     })
-    
+
     // Auto-remove after 5 seconds
     setTimeout(() => {
       if (document.body.contains(notification)) {
         notification.remove()
       }
     }, 5000)
-    
+
     document.body.appendChild(notification)
   }
 
@@ -309,7 +306,7 @@ class ContentScript {
           timestamp: Date.now()
         }
       })
-      
+
       this.logger.info('False positive reported')
     } catch (error) {
       this.logger.error('Failed to report false positive:', error)
@@ -321,11 +318,11 @@ class ContentScript {
     if (this.mutationObserver) {
       this.mutationObserver.disconnect()
     }
-    
+
     // Remove any injected elements
     document.querySelectorAll('.fb-spam-blocker-replacement, .fb-spam-blocker-notification')
       .forEach(el => el.remove())
-    
+
     // Restore hidden comments
     document.querySelectorAll('.fb-spam-blocker-hidden')
       .forEach(el => {

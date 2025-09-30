@@ -9,7 +9,7 @@ export class InvestmentScamDetector {
   constructor(enabled = true) {
     this.enabled = enabled
     this.logger = new Logger('InvestmentScamDetector')
-    
+
     // Pattern definitions for investment scams
     this.patterns = {
       // Chinese investment scam keywords
@@ -19,14 +19,14 @@ export class InvestmentScamDetector {
         '波段小仙女', '短線老司機', '當沖解盤手', '波段風向標', '麋路衝短線',
         '波段', '短線', '當沖', '解盤手', '風向標'
       ],
-      
+
       // Profit-related terms
       profitKeywords: [
         '獲利', '賺錢', '收益', '報酬', '回報', '利潤', '盈利',
         '翻倍', '暴漲', '漲停', '漲幅', '收穫', '賺到',
         '轉了點', '賺', '報牌', '自己看不懂老是虧'
       ],
-      
+
       // Testimonial patterns
       testimonialPatterns: [
         /真的建議去看看.*跟他學習/i,
@@ -43,13 +43,13 @@ export class InvestmentScamDetector {
         /.*的操作.*接地氣/i,
         /散戶也能跟.*賺/i
       ],
-      
+
       // Urgency and emotional triggers
       urgencyKeywords: [
         '把握機會', '不要錯過', '限時', '趕快', '馬上', '立即',
         '錯過可惜', '機不可失', '難得機會', '千載難逢'
       ],
-      
+
       // Financial promises
       promisePatterns: [
         /保證.*獲利/i,
@@ -60,7 +60,7 @@ export class InvestmentScamDetector {
         /躺著賺/i,
         /輕鬆賺/i
       ],
-      
+
       // Social proof and encouragement patterns
       socialProofPatterns: [
         '比自己亂衝好多了',
@@ -74,7 +74,7 @@ export class InvestmentScamDetector {
         '散戶也能跟'
       ]
     }
-    
+
     // Scoring weights for different pattern types
     this.weights = {
       investmentKeywords: 0.6,
@@ -104,7 +104,7 @@ export class InvestmentScamDetector {
     // Check each pattern category
     for (const [category, patterns] of Object.entries(this.patterns)) {
       const categoryResult = this.checkPatternCategory(text, category, patterns)
-      
+
       if (categoryResult.matches.length > 0) {
         detectedPatterns.push(...categoryResult.matches.map(match => ({
           type: 'investment_scam',
@@ -112,10 +112,10 @@ export class InvestmentScamDetector {
           pattern: match,
           weight: this.weights[category] || 0.1
         })))
-        
+
         totalScore += categoryResult.score * (this.weights[category] || 0.1)
       }
-      
+
       maxScore += this.weights[category] || 0.1
     }
 

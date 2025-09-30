@@ -15,13 +15,13 @@ class BackgroundService {
 
   async initialize() {
     this.logger.info('Background service initializing...')
-    
+
     // Set up default configuration
     await this.setupDefaultConfig()
-    
+
     // Set up event listeners
     this.setupEventListeners()
-    
+
     this.logger.info('Background service initialized')
   }
 
@@ -155,16 +155,15 @@ class BackgroundService {
 
   async handleTabUpdate(tabId, changeInfo, tab) {
     // Check if this is a Facebook page and extension is enabled
-    if (changeInfo.status === 'complete' && 
-        tab.url && 
+    if (changeInfo.status === 'complete' &&
+        tab.url &&
         (tab.url.includes('facebook.com') || tab.url.includes('fb.com'))) {
-      
       const config = await this.storageManager.get('config')
       if (config && config.enabled) {
         // Ensure content script is injected
         try {
           await chrome.scripting.executeScript({
-            target: { tabId: tabId },
+            target: { tabId },
             files: ['content/content.js']
           })
         } catch (error) {
@@ -177,7 +176,7 @@ class BackgroundService {
 
   async addToBlacklist(data) {
     const config = await this.storageManager.get('config')
-    
+
     if (data.type === 'user' && data.userId) {
       if (!config.blacklist.users.includes(data.userId)) {
         config.blacklist.users.push(data.userId)
@@ -195,7 +194,7 @@ class BackgroundService {
 
   async removeFromBlacklist(data) {
     const config = await this.storageManager.get('config')
-    
+
     if (data.type === 'user' && data.userId) {
       config.blacklist.users = config.blacklist.users.filter(id => id !== data.userId)
       await this.storageManager.set('config', config)
@@ -209,7 +208,7 @@ class BackgroundService {
 
   async updateStatistics(data) {
     const config = await this.storageManager.get('config')
-    
+
     if (data.blockedComments) {
       config.statistics.blockedComments += data.blockedComments
     }
@@ -219,14 +218,14 @@ class BackgroundService {
     if (data.falsePositives) {
       config.statistics.falsePositives += data.falsePositives
     }
-    
+
     await this.storageManager.set('config', config)
   }
 
   async reportSpam(data) {
     // Log spam report for pattern improvement
     this.logger.info('Spam reported:', data)
-    
+
     // In a real implementation, this could send data to a backend service
     // for pattern analysis and improvement
   }
@@ -234,10 +233,10 @@ class BackgroundService {
   async reportFalsePositive(data) {
     // Log false positive for pattern adjustment
     this.logger.warn('False positive reported:', data)
-    
+
     // Update statistics
     await this.updateStatistics({ falsePositives: 1 })
-    
+
     // In a real implementation, this could adjust detection patterns
     // or add to whitelist automatically
   }
@@ -245,11 +244,11 @@ class BackgroundService {
   async handleVersionUpdate(previousVersion) {
     // Handle migration between versions
     this.logger.info(`Migrating from version ${previousVersion}`)
-    
+
     // Example: Add new configuration options while preserving existing settings
     const config = await this.storageManager.get('config')
     const defaultConfig = await this.getDefaultConfig()
-    
+
     // Merge new default options with existing config
     const mergedConfig = this.mergeConfigs(config, defaultConfig)
     await this.storageManager.set('config', mergedConfig)
@@ -258,7 +257,7 @@ class BackgroundService {
   mergeConfigs(existing, defaults) {
     // Simple recursive merge - in production, use a proper deep merge library
     const result = { ...defaults }
-    
+
     for (const key in existing) {
       if (existing.hasOwnProperty(key)) {
         if (typeof existing[key] === 'object' && !Array.isArray(existing[key])) {
@@ -268,7 +267,7 @@ class BackgroundService {
         }
       }
     }
-    
+
     return result
   }
 }

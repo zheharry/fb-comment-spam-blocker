@@ -13,7 +13,7 @@ export class SpamDetector {
   constructor(config = {}) {
     this.config = config
     this.logger = new Logger('SpamDetector')
-    
+
     // Initialize individual detectors
     this.detectors = {
       investment: new InvestmentScamDetector(config.detectionPatterns?.investmentScams),
@@ -21,7 +21,7 @@ export class SpamDetector {
       generic: new GenericSpamDetector(config.detectionPatterns?.genericSpam),
       socialEngineering: new SocialEngineeringDetector(config.detectionPatterns?.socialEngineering)
     }
-    
+
     this.blacklist = config.blacklist || { users: [], keywords: [] }
     this.whitelist = config.whitelist || { users: [], domains: [] }
     this.aggressiveMode = config.settings?.aggressiveMode || false
@@ -35,7 +35,7 @@ export class SpamDetector {
   async analyzeComment(comment) {
     try {
       const startTime = performance.now()
-      
+
       // Quick whitelist check
       if (this.isWhitelisted(comment)) {
         return {
@@ -76,7 +76,6 @@ export class SpamDetector {
       })
 
       return combinedResult
-
     } catch (error) {
       this.logger.error('Error analyzing comment:', error)
       return {
@@ -96,7 +95,7 @@ export class SpamDetector {
     if (!comment.author) return false
 
     // Check user whitelist
-    if (this.whitelist.users.includes(comment.author.id) || 
+    if (this.whitelist.users.includes(comment.author.id) ||
         this.whitelist.users.includes(comment.author.username)) {
       return true
     }
@@ -121,8 +120,8 @@ export class SpamDetector {
    */
   checkBlacklist(comment) {
     // Check user blacklist
-    if (comment.author && 
-        (this.blacklist.users.includes(comment.author.id) || 
+    if (comment.author &&
+        (this.blacklist.users.includes(comment.author.id) ||
          this.blacklist.users.includes(comment.author.username))) {
       return {
         isSpam: true,
@@ -182,9 +181,9 @@ export class SpamDetector {
   /**
    * Combine results from multiple detectors
    */
-  combineResults(results, comment) {
+  combineResults(results, _comment) {
     const validResults = results.filter(r => r.confidence > 0)
-    
+
     if (validResults.length === 0) {
       return {
         isSpam: false,
@@ -226,10 +225,10 @@ export class SpamDetector {
    */
   getDetectorWeight(type) {
     const weights = {
-      investment: 1.2,    // Investment scams are high priority
-      crypto: 1.1,        // Crypto scams are also high priority
+      investment: 1.2, // Investment scams are high priority
+      crypto: 1.1, // Crypto scams are also high priority
       socialEngineering: 1.0,
-      generic: 0.8        // Generic spam detection is less specific
+      generic: 0.8 // Generic spam detection is less specific
     }
     return weights[type] || 1.0
   }
