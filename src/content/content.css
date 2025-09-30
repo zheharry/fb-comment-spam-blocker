@@ -1,0 +1,172 @@
+/**
+ * Styles for Facebook Comment Spam Blocker content script
+ */
+
+/* Hidden spam comments */
+.fb-spam-blocker-hidden {
+  display: none !important;
+}
+
+/* Spam replacement notice */
+.fb-spam-blocker-replacement {
+  margin: 8px 0;
+  padding: 12px 16px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.spam-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #856404;
+}
+
+.spam-icon {
+  font-size: 16px;
+}
+
+.spam-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.show-comment-btn,
+.report-false-positive-btn {
+  background: none;
+  border: 1px solid #856404;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.show-comment-btn:hover,
+.report-false-positive-btn:hover {
+  background: #856404;
+  color: white;
+}
+
+.report-false-positive-btn {
+  margin-left: 4px;
+}
+
+/* Notification styles */
+.fb-spam-blocker-notification {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  background: #1877f2 !important;
+  color: white !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  z-index: 10000 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 14px !important;
+  max-width: 300px !important;
+  animation: slideInRight 0.3s ease-out !important;
+}
+
+.notification-content {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.notification-icon {
+  font-size: 16px !important;
+}
+
+.notification-text {
+  flex: 1 !important;
+}
+
+.notification-close {
+  background: none !important;
+  border: none !important;
+  color: white !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  transition: background-color 0.2s !important;
+}
+
+.notification-close:hover {
+  background: rgba(255,255,255,0.2) !important;
+}
+
+/* Animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .fb-spam-blocker-replacement {
+    background: #2d2001;
+    border-color: #806d03;
+    color: #ffdf6b;
+  }
+  
+  .spam-notice {
+    color: #ffdf6b;
+  }
+  
+  .show-comment-btn,
+  .report-false-positive-btn {
+    border-color: #ffdf6b;
+    color: #ffdf6b;
+  }
+  
+  .show-comment-btn:hover,
+  .report-false-positive-btn:hover {
+    background: #ffdf6b;
+    color: #2d2001;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .fb-spam-blocker-replacement {
+    border-width: 2px;
+  }
+  
+  .show-comment-btn,
+  .report-false-positive-btn {
+    border-width: 2px;
+    font-weight: bold;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .fb-spam-blocker-notification {
+    animation: none !important;
+  }
+  
+  .show-comment-btn,
+  .report-false-positive-btn,
+  .notification-close {
+    transition: none !important;
+  }
+}
