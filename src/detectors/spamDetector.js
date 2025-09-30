@@ -155,7 +155,20 @@ export class SpamDetector {
    */
   async runDetector(type, comment) {
     try {
-      if (!this.detectors[type] || !this.config.detectionPatterns?.[type]) {
+      if (!this.detectors[type]) {
+        return { isSpam: false, confidence: 0, patterns: [] }
+      }
+
+      // Map detector types to config keys
+      const configMap = {
+        investment: 'investmentScams',
+        crypto: 'cryptoScams',
+        generic: 'genericSpam',
+        socialEngineering: 'socialEngineering'
+      }
+
+      const configKey = configMap[type]
+      if (!this.config.detectionPatterns?.[configKey]) {
         return { isSpam: false, confidence: 0, patterns: [] }
       }
 

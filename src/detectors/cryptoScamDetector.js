@@ -46,10 +46,10 @@ export class CryptoScamDetector {
     }
     
     this.weights = {
-      cryptoKeywords: 0.3,
-      scamPromises: 0.6,
-      scamPhrases: 0.4,
-      suspiciousPlatforms: 0.5
+      cryptoKeywords: 0.5,
+      scamPromises: 0.8,
+      scamPhrases: 0.6,
+      suspiciousPlatforms: 0.7
     }
   }
 
@@ -94,7 +94,7 @@ export class CryptoScamDetector {
       maxScore += 0.4
     }
 
-    const confidence = maxScore > 0 ? Math.min(totalScore / maxScore, 1.0) : 0
+    const confidence = maxScore > 0 ? Math.min(totalScore, 1.0) : 0
 
     return {
       isSpam: confidence > 0.6,
@@ -123,7 +123,11 @@ export class CryptoScamDetector {
           }
         }
       })
-      score = Math.min(score / patterns.length, 1.0)
+      // Don't normalize by total patterns - instead use a logarithmic scaling
+      // to give higher scores for multiple matches while preventing runaway scores
+      if (score > 0) {
+        score = Math.min(Math.log(score + 1) / Math.log(patterns.length + 1), 1.0)
+      }
     }
 
     return { matches, score }

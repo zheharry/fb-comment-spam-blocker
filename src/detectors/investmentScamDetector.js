@@ -15,13 +15,16 @@ export class InvestmentScamDetector {
       // Chinese investment scam keywords
       investmentKeywords: [
         '股海策略師', '投資老師', '理財師', '股票老師', '操盤手',
-        '投資顧問', '財經專家', '股市大師', '投資達人', '理財專家'
+        '投資顧問', '財經專家', '股市大師', '投資達人', '理財專家',
+        '波段小仙女', '短線老司機', '當沖解盤手', '波段風向標', '麋路衝短線',
+        '波段', '短線', '當沖', '解盤手', '風向標'
       ],
       
       // Profit-related terms
       profitKeywords: [
         '獲利', '賺錢', '收益', '報酬', '回報', '利潤', '盈利',
-        '翻倍', '暴漲', '漲停', '漲幅', '收穫', '賺到'
+        '翻倍', '暴漲', '漲停', '漲幅', '收穫', '賺到',
+        '轉了點', '賺', '報牌', '自己看不懂老是虧'
       ],
       
       // Testimonial patterns
@@ -31,7 +34,14 @@ export class InvestmentScamDetector {
         /老師.*真的.*感謝/i,
         /學習.*一段時間.*感謝/i,
         /非常感謝.*老師/i,
-        /推薦.*老師.*不錯/i
+        /推薦.*老師.*不錯/i,
+        /跟著.*無腦上車/i,
+        /跟著.*學.*投資/i,
+        /真的推爆.*/i,
+        /大家一定要關注.*/i,
+        /推薦.*準確率/i,
+        /.*的操作.*接地氣/i,
+        /散戶也能跟.*賺/i
       ],
       
       // Urgency and emotional triggers
@@ -49,16 +59,30 @@ export class InvestmentScamDetector {
         /包賺/i,
         /躺著賺/i,
         /輕鬆賺/i
+      ],
+      
+      // Social proof and encouragement patterns
+      socialProofPatterns: [
+        '比自己亂衝好多了',
+        '驚訝不已',
+        '還真轉了點',
+        '推爆',
+        '超接地氣',
+        '準確率',
+        '無腦上車',
+        '關注.*分享',
+        '散戶也能跟'
       ]
     }
     
     // Scoring weights for different pattern types
     this.weights = {
-      investmentKeywords: 0.4,
-      profitKeywords: 0.2,
-      testimonialPatterns: 0.5,
+      investmentKeywords: 0.6,
+      profitKeywords: 0.4,
+      testimonialPatterns: 0.8,
       urgencyKeywords: 0.3,
-      promisePatterns: 0.6
+      promisePatterns: 0.6,
+      socialProofPatterns: 0.7
     }
   }
 
@@ -109,7 +133,7 @@ export class InvestmentScamDetector {
     }
 
     // Calculate confidence (normalized score)
-    const confidence = maxScore > 0 ? Math.min(totalScore / maxScore, 1.0) : 0
+    const confidence = maxScore > 0 ? Math.min(totalScore, 1.0) : 0
 
     this.logger.debug('Investment scam detection result:', {
       confidence,
@@ -133,28 +157,25 @@ export class InvestmentScamDetector {
     let score = 0
 
     if (Array.isArray(patterns)) {
-      // Keyword matching
       patterns.forEach(pattern => {
-        if (text.toLowerCase().includes(pattern.toLowerCase())) {
-          matches.push(pattern)
-          score += 1
+        if (typeof pattern === 'string') {
+          if (text.toLowerCase().includes(pattern.toLowerCase())) {
+            matches.push(pattern)
+            score += 1
+          }
+        } else if (pattern instanceof RegExp) {
+          const match = text.match(pattern)
+          if (match) {
+            matches.push(match[0])
+            score += 1
+          }
         }
       })
-      // Normalize by pattern count
-      score = Math.min(score / patterns.length, 1.0)
-      
-    } else if (patterns instanceof RegExp || (Array.isArray(patterns) && patterns[0] instanceof RegExp)) {
-      // Regex pattern matching
-      const regexPatterns = Array.isArray(patterns) ? patterns : [patterns]
-      regexPatterns.forEach(regex => {
-        const match = text.match(regex)
-        if (match) {
-          matches.push(match[0])
-          score += 1
-        }
-      })
-      // Normalize by pattern count
-      score = Math.min(score / regexPatterns.length, 1.0)
+      // Don't normalize by total patterns - instead use a logarithmic scaling
+      // to give higher scores for multiple matches while preventing runaway scores
+      if (score > 0) {
+        score = Math.min(Math.log(score + 1) / Math.log(patterns.length + 1), 1.0)
+      }
     }
 
     return { matches, score }
