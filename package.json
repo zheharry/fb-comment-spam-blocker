@@ -1,0 +1,64 @@
+{
+  "name": "fb-comment-spam-blocker",
+  "version": "1.0.0",
+  "description": "Playwright-based browser extension to detect and block Facebook comment spam, particularly targeting investment scam promotions",
+  "main": "src/background.js",
+  "scripts": {
+    "build": "npm run build:chrome && npm run build:edge && npm run build:safari",
+    "build:chrome": "webpack --config webpack/webpack.chrome.js",
+    "build:edge": "webpack --config webpack/webpack.edge.js",
+    "build:safari": "webpack --config webpack/webpack.safari.js",
+    "test": "jest",
+    "test:e2e": "playwright test",
+    "test:unit": "jest --testPathPattern=src/",
+    "test:integration": "jest --testPathPattern=tests/integration/",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "dev": "webpack --config webpack/webpack.chrome.js --watch",
+    "package": "npm run build && npm run package:chrome && npm run package:edge",
+    "package:chrome": "cd dist/chrome && zip -r ../chrome-extension.zip .",
+    "package:edge": "cd dist/edge && zip -r ../edge-extension.zip ."
+  },
+  "keywords": [
+    "facebook",
+    "spam",
+    "blocker",
+    "browser-extension",
+    "playwright",
+    "chrome",
+    "edge",
+    "safari"
+  ],
+  "author": "Harry Cheng",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/chrome": "^0.0.250",
+    "@types/jest": "^29.5.8",
+    "@types/node": "^20.9.0",
+    "eslint": "^8.54.0",
+    "eslint-config-standard": "^17.1.0",
+    "jest": "^29.7.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "webextension-polyfill": "^0.10.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/*.test.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  }
+}
