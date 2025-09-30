@@ -9,24 +9,24 @@ export class GenericSpamDetector {
   constructor(enabled = true) {
     this.enabled = enabled
     this.logger = new Logger('GenericSpamDetector')
-    
+
     this.patterns = {
       // Excessive emoji usage
       excessiveEmojis: /[\u{1F600}-\u{1F64F}|\u{1F300}-\u{1F5FF}|\u{1F680}-\u{1F6FF}|\u{1F1E0}-\u{1F1FF}|\u{2600}-\u{26FF}|\u{2700}-\u{27BF}]{5,}/gu,
-      
+
       // Repetitive characters
       repetitiveChars: /(.)\1{4,}/g,
-      
+
       // Excessive capitalization
       excessiveCaps: /[A-Z]{5,}/g,
-      
+
       // Link spam patterns
       linkPatterns: [
         /bit\.ly\/\w+/gi,
         /tinyurl\.com\/\w+/gi,
         /短網址/gi
       ],
-      
+
       // Generic spam keywords
       spamKeywords: [
         '點擊連結', '限時優惠', '免費贈送', '立即領取',
@@ -34,7 +34,7 @@ export class GenericSpamDetector {
         '廣告', '推廣', '宣傳', '代理', '招商',
         '賺外快', '兼職', '在家工作', '網路賺錢'
       ],
-      
+
       // Promotional phrases
       promotionalPhrases: [
         /加入.*群組/i,
@@ -44,7 +44,7 @@ export class GenericSpamDetector {
         /轉發.*有獎/i
       ]
     }
-    
+
     this.weights = {
       excessiveEmojis: 0.3,
       repetitiveChars: 0.2,
@@ -182,7 +182,7 @@ export class GenericSpamDetector {
   checkLengthAndLinks(comment) {
     const text = comment.text || ''
     const links = comment.links || []
-    
+
     if (links.length === 0) return 0
 
     // Short text with many links is suspicious

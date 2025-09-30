@@ -9,7 +9,7 @@ export class SocialEngineeringDetector {
   constructor(enabled = true) {
     this.enabled = enabled
     this.logger = new Logger('SocialEngineeringDetector')
-    
+
     this.patterns = {
       // Patterns indicating user manipulation
       manipulationPhrases: [
@@ -17,13 +17,13 @@ export class SocialEngineeringDetector {
         '告訴身邊的人', '分享出去', '讓更多人知道',
         '一起來看', '大家一起', '邀請朋友'
       ],
-      
+
       // Fake urgency to create FOMO
       urgencyTactics: [
         '名額有限', '僅限今天', '錯過就沒了', '最後機會',
         '限時限量', '售完為止', '今日特價', '限今日'
       ],
-      
+
       // Authority claims
       authorityClaims: [
         /.*專家.*推薦/i,
@@ -32,14 +32,14 @@ export class SocialEngineeringDetector {
         /.*權威.*認證/i,
         /.*官方.*推薦/i
       ],
-      
+
       // Social proof manipulation
       socialProofPhrases: [
         '很多人都在', '大家都說', '朋友都推薦', '網友分享',
         '熱門推薦', '爆紅', '瘋傳', '討論度很高'
       ]
     }
-    
+
     this.weights = {
       manipulationPhrases: 0.4,
       urgencyTactics: 0.3,
@@ -75,7 +75,7 @@ export class SocialEngineeringDetector {
     // Check each pattern category
     for (const [category, patterns] of Object.entries(this.patterns)) {
       const categoryResult = this.checkPatternCategory(text, category, patterns)
-      
+
       if (categoryResult.matches.length > 0) {
         detectedPatterns.push(...categoryResult.matches.map(match => ({
           type: 'social_engineering',
@@ -83,10 +83,10 @@ export class SocialEngineeringDetector {
           pattern: match,
           weight: this.weights[category] || 0.1
         })))
-        
+
         totalScore += categoryResult.score * (this.weights[category] || 0.1)
       }
-      
+
       maxScore += this.weights[category] || 0.1
     }
 
@@ -109,7 +109,7 @@ export class SocialEngineeringDetector {
       maxScore += 0.2
     }
 
-    const confidence = maxScore > 0 ? Math.min(totalScore / maxScore, 1.0) : 0
+    const confidence = maxScore > 0 ? Math.min(totalScore, 1.0) : 0
 
     return {
       isSpam: confidence > 0.6,
@@ -158,7 +158,11 @@ export class SocialEngineeringDetector {
           }
         }
       })
-      score = Math.min(score / patterns.length, 1.0)
+      // Don't normalize by total patterns - instead use a logarithmic scaling
+      // to give higher scores for multiple matches while preventing runaway scores
+      if (score > 0) {
+        score = Math.min(Math.log(score + 1) / Math.log(patterns.length + 1), 1.0)
+      }
     }
 
     return { matches, score }
@@ -168,10 +172,10 @@ export class SocialEngineeringDetector {
     // Check for signs of coordinated inauthentic behavior
     // This would require additional data about posting patterns,
     // account age, etc. For now, we'll use basic heuristics
-    
+
     const text = comment.text || ''
     const author = comment.author || {}
-    
+
     let suspiciousFactors = 0
 
     // Very new account posting promotional content

@@ -9,7 +9,7 @@ export class CryptoScamDetector {
   constructor(enabled = true) {
     this.enabled = enabled
     this.logger = new Logger('CryptoScamDetector')
-    
+
     this.patterns = {
       // Cryptocurrency terms
       cryptoKeywords: [
@@ -18,7 +18,7 @@ export class CryptoScamDetector {
         'Ripple', 'XRP', 'Dogecoin', 'DOGE', 'Cardano', 'ADA',
         '加密貨幣', '虛擬貨幣', '數位貨幣', '區塊鏈', '挖礦'
       ],
-      
+
       // Scam-related crypto promises
       scamPromises: [
         /快速致富.*加密/i,
@@ -28,14 +28,14 @@ export class CryptoScamDetector {
         /穩賺.*區塊鏈/i,
         /零風險.*挖礦/i
       ],
-      
+
       // Common crypto scam phrases
       scamPhrases: [
         '內幕消息', '獨家資訊', '幣圈大佬', '合約交易',
         '槓桿交易', '量化交易', 'DeFi挖礦', 'NFT暴漲',
         '空投福利', '白名單', '私募額度', '早期投資'
       ],
-      
+
       // Fake platform names (common in Chinese crypto scams)
       suspiciousPlatforms: [
         /.*交易所.*保證/i,
@@ -44,12 +44,12 @@ export class CryptoScamDetector {
         /.*系統.*自動/i
       ]
     }
-    
+
     this.weights = {
-      cryptoKeywords: 0.3,
-      scamPromises: 0.6,
-      scamPhrases: 0.4,
-      suspiciousPlatforms: 0.5
+      cryptoKeywords: 0.5,
+      scamPromises: 0.8,
+      scamPhrases: 0.6,
+      suspiciousPlatforms: 0.7
     }
   }
 
@@ -66,7 +66,7 @@ export class CryptoScamDetector {
     // Check each pattern category
     for (const [category, patterns] of Object.entries(this.patterns)) {
       const categoryResult = this.checkPatternCategory(text, category, patterns)
-      
+
       if (categoryResult.matches.length > 0) {
         detectedPatterns.push(...categoryResult.matches.map(match => ({
           type: 'crypto_scam',
@@ -74,10 +74,10 @@ export class CryptoScamDetector {
           pattern: match,
           weight: this.weights[category] || 0.1
         })))
-        
+
         totalScore += categoryResult.score * (this.weights[category] || 0.1)
       }
-      
+
       maxScore += this.weights[category] || 0.1
     }
 
@@ -94,7 +94,7 @@ export class CryptoScamDetector {
       maxScore += 0.4
     }
 
-    const confidence = maxScore > 0 ? Math.min(totalScore / maxScore, 1.0) : 0
+    const confidence = maxScore > 0 ? Math.min(totalScore, 1.0) : 0
 
     return {
       isSpam: confidence > 0.6,
@@ -123,7 +123,11 @@ export class CryptoScamDetector {
           }
         }
       })
-      score = Math.min(score / patterns.length, 1.0)
+      // Don't normalize by total patterns - instead use a logarithmic scaling
+      // to give higher scores for multiple matches while preventing runaway scores
+      if (score > 0) {
+        score = Math.min(Math.log(score + 1) / Math.log(patterns.length + 1), 1.0)
+      }
     }
 
     return { matches, score }
@@ -135,7 +139,7 @@ export class CryptoScamDetector {
 
     let suspiciousCount = 0
     const text = comment.text || ''
-    
+
     // Check if text contains crypto keywords and there are links
     const hasCryptoContent = this.patterns.cryptoKeywords.some(keyword =>
       text.toLowerCase().includes(keyword.toLowerCase())
@@ -156,7 +160,7 @@ export class CryptoScamDetector {
   isSuspiciousCryptoDomain(url) {
     try {
       const domain = new URL(url).hostname.toLowerCase()
-      
+
       // Common patterns in scam crypto domains
       const suspiciousPatterns = [
         /.*-crypto.*\.com$/,
@@ -165,7 +169,7 @@ export class CryptoScamDetector {
         /.*trade.*\.xyz$/,
         /.*invest.*\.info$/
       ]
-      
+
       return suspiciousPatterns.some(pattern => pattern.test(domain))
     } catch {
       return false

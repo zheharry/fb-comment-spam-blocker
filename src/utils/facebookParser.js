@@ -8,7 +8,7 @@ import { Logger } from './logger.js'
 export class FacebookParser {
   constructor() {
     this.logger = new Logger('FacebookParser')
-    
+
     // Facebook DOM selectors (these may need updates as Facebook changes)
     this.selectors = {
       // Comment containers
@@ -19,7 +19,7 @@ export class FacebookParser {
         '[data-pagelet="CommentList"]',
         '.commentable_item'
       ],
-      
+
       // Comment text
       commentText: [
         '[data-testid="comment"] [data-ad-preview="message"]',
@@ -27,7 +27,7 @@ export class FacebookParser {
         '.x193iq5w.xeuugli.x13faqbe.x1vvkbs.x1xmvt09.x1lliihq.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.xudqn12.x3x7a5m.x6prxxf.xvq8zen.xo1l8bm.xi81zsa', // Another text pattern
         'span[dir="auto"]' // Generic text span
       ],
-      
+
       // Comment author
       commentAuthor: [
         '[data-testid="comment"] a[role="link"]',
@@ -35,20 +35,20 @@ export class FacebookParser {
         'h3 a', // Author link in header
         '.actor a' // Legacy selector
       ],
-      
+
       // Tagged users
       taggedUsers: [
         'a[data-hovercard-prefer-more-content-show="1"]',
         'a[role="link"][tabindex="0"]',
         '.x1i10hfl.xjbqb8w.x6umtig.x1b1mbwd.xaqea5y.xav7gou.x9f619.x1ypdohk.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.xt0psk2.x1heor9g'
       ],
-      
+
       // Links in comments
       links: [
         'a[href]',
         'a[target="_blank"]'
       ],
-      
+
       // Comment timestamp/ID elements
       timestamp: [
         '[data-testid="comment"] time',
@@ -63,7 +63,7 @@ export class FacebookParser {
    */
   findComments() {
     const comments = []
-    
+
     for (const selector of this.selectors.comments) {
       try {
         const elements = document.querySelectorAll(selector)
@@ -77,7 +77,7 @@ export class FacebookParser {
         this.logger.debug(`Selector failed: ${selector}`, error.message)
       }
     }
-    
+
     this.logger.debug(`Found ${comments.length} comment elements`)
     return comments
   }
@@ -87,7 +87,7 @@ export class FacebookParser {
    */
   findCommentsInElement(element) {
     const comments = []
-    
+
     for (const selector of this.selectors.comments) {
       try {
         const elements = element.querySelectorAll(selector)
@@ -100,7 +100,7 @@ export class FacebookParser {
         this.logger.debug(`Selector failed in element: ${selector}`, error.message)
       }
     }
-    
+
     return comments
   }
 
@@ -116,7 +116,7 @@ export class FacebookParser {
       () => commentElement.querySelector('time')?.getAttribute('datetime'),
       () => this.generateElementHash(commentElement)
     ]
-    
+
     for (const method of methods) {
       try {
         const id = method()
@@ -125,7 +125,7 @@ export class FacebookParser {
         // Continue to next method
       }
     }
-    
+
     return null
   }
 
@@ -136,7 +136,7 @@ export class FacebookParser {
     const text = element.textContent || ''
     const position = Array.from(element.parentNode.children).indexOf(element)
     const hashString = `${text.substring(0, 50)}_${position}_${element.tagName}`
-    
+
     // Simple hash function
     let hash = 0
     for (let i = 0; i < hashString.length; i++) {
@@ -144,7 +144,7 @@ export class FacebookParser {
       hash = ((hash << 5) - hash) + char
       hash = hash & hash // Convert to 32-bit integer
     }
-    
+
     return `generated_${Math.abs(hash)}`
   }
 
@@ -161,7 +161,7 @@ export class FacebookParser {
         timestamp: this.extractTimestamp(commentElement),
         element: commentElement
       }
-      
+
       return commentData
     } catch (error) {
       this.logger.error('Error parsing comment:', error)
@@ -183,16 +183,16 @@ export class FacebookParser {
         continue
       }
     }
-    
+
     // Fallback: get all text content but filter out navigation elements
     const clone = commentElement.cloneNode(true)
-    
+
     // Remove elements that are not part of the comment text
     const elementsToRemove = [
       'button', 'svg', '.timestampContent', '[role="button"]',
       '[data-testid="more_horiz"]', '.like_link', '.comment_link'
     ]
-    
+
     elementsToRemove.forEach(selector => {
       try {
         clone.querySelectorAll(selector).forEach(el => el.remove())
@@ -200,7 +200,7 @@ export class FacebookParser {
         // Continue
       }
     })
-    
+
     return clone.textContent.trim()
   }
 
@@ -223,7 +223,7 @@ export class FacebookParser {
         continue
       }
     }
-    
+
     return null
   }
 
@@ -232,7 +232,7 @@ export class FacebookParser {
    */
   extractTaggedUsers(commentElement) {
     const taggedUsers = []
-    
+
     for (const selector of this.selectors.taggedUsers) {
       try {
         const userLinks = commentElement.querySelectorAll(selector)
@@ -244,7 +244,7 @@ export class FacebookParser {
               profileUrl: link.href,
               id: this.extractUserIdFromUrl(link.href)
             }
-            
+
             // Avoid duplicates
             if (!taggedUsers.some(u => u.id === user.id || u.username === user.username)) {
               taggedUsers.push(user)
@@ -255,7 +255,7 @@ export class FacebookParser {
         continue
       }
     }
-    
+
     return taggedUsers
   }
 
@@ -264,7 +264,7 @@ export class FacebookParser {
    */
   extractLinks(commentElement) {
     const links = []
-    
+
     for (const selector of this.selectors.links) {
       try {
         const linkElements = commentElement.querySelectorAll(selector)
@@ -277,7 +277,7 @@ export class FacebookParser {
         continue
       }
     }
-    
+
     return links
   }
 
@@ -289,7 +289,7 @@ export class FacebookParser {
       try {
         const timeElement = commentElement.querySelector(selector)
         if (timeElement) {
-          return timeElement.getAttribute('datetime') || 
+          return timeElement.getAttribute('datetime') ||
                  timeElement.getAttribute('data-utime') ||
                  timeElement.textContent
         }
@@ -297,7 +297,7 @@ export class FacebookParser {
         continue
       }
     }
-    
+
     return null
   }
 
@@ -306,25 +306,25 @@ export class FacebookParser {
    */
   extractUsernameFromUrl(url) {
     if (!url) return null
-    
+
     try {
       const urlObj = new URL(url)
       const pathname = urlObj.pathname
-      
+
       // Handle different Facebook URL formats
       const patterns = [
-        /\/([^\/]+)\/?$/,  // facebook.com/username
+        /\/([^\/]+)\/?$/, // facebook.com/username
         /\/profile\.php\?id=(\d+)/, // facebook.com/profile.php?id=123
         /\/people\/[^\/]+\/(\d+)/ // facebook.com/people/name/id
       ]
-      
+
       for (const pattern of patterns) {
         const match = pathname.match(pattern)
         if (match) {
           return match[1]
         }
       }
-      
+
       return null
     } catch (error) {
       return null
@@ -336,15 +336,15 @@ export class FacebookParser {
    */
   extractUserIdFromUrl(url) {
     if (!url) return null
-    
+
     try {
       const urlObj = new URL(url)
-      
+
       // Try to get numeric ID from various URL formats
-      const idMatch = urlObj.search.match(/id=(\d+)/) || 
+      const idMatch = urlObj.search.match(/id=(\d+)/) ||
                      urlObj.pathname.match(/\/(\d+)$/) ||
                      urlObj.pathname.match(/\/people\/[^\/]+\/(\d+)/)
-      
+
       return idMatch ? idMatch[1] : this.extractUsernameFromUrl(url)
     } catch (error) {
       return null
@@ -363,7 +363,7 @@ export class FacebookParser {
    * Test if current page is Facebook
    */
   isFacebookPage() {
-    return window.location.hostname.includes('facebook.com') || 
+    return window.location.hostname.includes('facebook.com') ||
            window.location.hostname.includes('fb.com')
   }
 
@@ -372,12 +372,12 @@ export class FacebookParser {
    */
   getPageType() {
     const path = window.location.pathname
-    
+
     if (path.includes('/groups/')) return 'group'
     if (path.includes('/pages/')) return 'page'
     if (path.includes('/profile.php') || path.match(/^\/[^\/]+\/?$/)) return 'profile'
     if (path === '/' || path === '/home.php') return 'feed'
-    
+
     return 'unknown'
   }
 }
